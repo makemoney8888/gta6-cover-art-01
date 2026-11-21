@@ -1,57 +1,45 @@
-// Viceprint — entry program for the gta6-cover-art-01 bounty (Node 22,
-// standard library only). The app itself is this directory's app/ folder:
-// plain static files a desktop browser runs fully offline. This program
-// hands the entry in: it copies app/ and screenshots/ into the output
-// directory and writes dossier.json there with the kit's buildDossier, the
-// summary the judge reads.
+// Viceprint entry program (Node 22, standard library only).
 //
-// The output directory is emptied first, so a stale file from an earlier
-// run can never leak into an entry and two runs over the same repository
-// write byte-identical output.
+// The app is plain static files under app/ (app/index.html and its ES
+// modules, no library, no network request) and this program hands it in:
+// it copies app/ and screenshots/ from beside this file to the output
+// directory and writes /output/dossier.json with the kit's buildDossier.
+// Outside the grader's container, MAKEFUN_OUTPUT_DIR stands in for /output:
 //
-// Serve the app locally with `node serve.ts`, then open
-// http://localhost:8080. Outside the grader's container,
-// MAKEFUN_OUTPUT_DIR stands in for /output:
 //   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+//
+// Serve the app locally with `node serve.ts`, then open http://localhost:8080.
 
-import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-app.ts';
 
-/** Counts the files and bytes under a directory, recursively. */
-function measure(dir) {
-  let files = 0;
-  let bytes = 0;
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    const path = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      const inner = measure(path);
-      files += inner.files;
-      bytes += inner.bytes;
-    } else {
-      files += 1;
-      bytes += statSync(path).size;
-    }
-  }
-  return { files, bytes };
-}
-
 const here = fileURLToPath(new URL('.', import.meta.url));
 const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 
-rmSync(out, { recursive: true, force: true });
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) {
-  cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+// The gate's own caps, mirrored here so a bad tree fails loudly at build
+// time instead of at grading: 3 or 4 screenshots, each at most 256 KiB,
+// and an OSI-approved license carrying its SPDX identifier line.
+const licensePath = join(here, 'LICENSE');
+if (!existsSync(licensePath) || !readFileSync(licensePath, 'utf8').includes('SPDX-License-Identifier: MIT')) {
+  throw new Error('LICENSE is missing or lacks the SPDX-License-Identifier: MIT line');
+}
+const shotsDir = join(here, 'screenshots');
+const shots = existsSync(shotsDir) ? readdirSync(shotsDir).filter((f) => !f.startsWith('.')) : [];
+if (shots.length < 3 || shots.length > 4) {
+  throw new Error(`expected 3 or 4 screenshots, found ${shots.length}`);
+}
+for (const shot of shots) {
+  const bytes = statSync(join(shotsDir, shot)).size;
+  if (bytes > 262144) throw new Error(`screenshot ${shot} is ${bytes} bytes, over the 256 KiB cap`);
 }
 
-// The caps are the scorer's own (see the kit's RULES.txt, "The gate"):
-// at most 4 screenshots of 256 KiB each, at most 993 files and 48 MiB
-// under app/, no app path over 1000 bytes, and the dossier's source text
-// capped at 160 KiB. buildDossier refuses an entry the scorer would
-// refuse, rather than writing a dossier for it.
+mkdirSync(out, { recursive: true });
+cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
+mkdirSync(join(out, 'screenshots'), { recursive: true });
+cpSync(shotsDir, join(out, 'screenshots'), { recursive: true });
+
 writeFileSync(
   join(out, 'dossier.json'),
   buildDossier(out, {
@@ -63,14 +51,10 @@ writeFileSync(
   }),
 );
 
-// Handover summary: the gate wants 3 or 4 screenshots, so say so loudly
-// here rather than letting a short or over-long set reach the scorer.
-const shots = readdirSync(join(out, 'screenshots')).filter((n) => !n.startsWith('.'));
-if (shots.length < 3 || shots.length > 4) {
-  throw new Error(`screenshots/ holds ${shots.length} images; the gate wants 3 or 4`);
+// The dossier itself is capped at 1.5 MiB; refuse a build that busts it.
+const dossierBytes = statSync(join(out, 'dossier.json')).size;
+if (dossierBytes > 1572864) {
+  throw new Error(`dossier.json is ${dossierBytes} bytes, over the 1.5 MiB cap`);
 }
-const total = measure(out);
-console.log(
-  `viceprint: handed in ${total.files} files, ${total.bytes} bytes, ` +
-  `${shots.length} screenshots, dossier ${statSync(join(out, 'dossier.json')).size} bytes`,
-);
+
+console.log(`Viceprint dossier written: ${shots.length} screenshots, ${readdirSync(join(out, 'app'), { recursive: true }).length} app entries, dossier ${dossierBytes} bytes`);

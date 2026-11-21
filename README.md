@@ -11,6 +11,8 @@ to share. It is a static web app — plain files under `app/`, no build
 step, no network requests — and your photos are read on your own machine
 and never uploaded anywhere.
 
+See the bounty: https://make.fun/bounty/gta6-cover-art-01
+
 ## Run it
 
 ```sh
@@ -22,15 +24,15 @@ static file server.
 
 ## What it does
 
-1. **Photos** — start from the two bundled samples (a boulevard at dusk,
-   a pier at sunset) or add your own; every panel of the cover can hold a
-   different photo, or one photo can fill them all.
+1. **Photos** — start from the two bundled samples (a pier at sunset, a
+   boulevard at dusk) or add your own; every panel of the cover can hold
+   a different photo, or one photo can fill them all.
 2. **Layouts** — five poster grids: Cover Collage (hero + two beats + a
    wide strip), Twin Bill (two portraits split by a slanted cut), Hero
    Shot (one full-bleed photograph), Four Corners (2×2), and Hero &
    Strip (a wide hero over a three-panel film strip).
-3. **Panels** — pick a panel, choose its photo, zoom it, and drag the
-   photo right on the preview to position it in the frame.
+3. **Panels** — click a panel to pick it, choose its photo, zoom it, and
+   drag the photo right on the preview to position it in the frame.
 4. **Colour grades** — Vice Sunset, Neon Nights, Golden Hour, Midnight
    Chrome and Tropical Punch re-skin the photos, the backdrop, the
    lettering and the studio seal in one click.
@@ -42,13 +44,13 @@ static file server.
 ## How it is put together
 
 - `app/index.html` + `app/style.css` — the editor page and its theme.
-- `app/src/panels.js` — the layout geometry, in fraction coordinates so
+- `app/src/layouts.js` — the layout geometry, in fraction coordinates so
   every layout fits every export size.
-- `app/src/grade.js` — the five colour grades (filter, wash, palette).
-- `app/src/render.js` — the cover painter: graded backdrop, clipped
-  photo panels, lettering, seal, grain and vignette. The preview and the
+- `app/src/grades.js` — the five colour grades (filter, wash, palette).
+- `app/src/painter.js` — the cover painter: graded backdrop, clipped
+  photo frames, lettering, seal, grain and vignette. The preview and the
   exported PNG are the same drawing.
-- `app/src/main.js` — the editor wiring: photo tray, panel selection,
+- `app/src/editor.js` — the editor wiring: photo tray, panel selection,
   drag-to-position, export.
 - `app/src/shots.js` — deterministic `?shot=` scenes used to take the
   screenshots in `screenshots/` (see `shots.json`).
