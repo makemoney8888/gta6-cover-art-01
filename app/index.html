@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viceprint — GTA-style Cover Art Studio</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">VICEPRINT</span>
+    <span class="brand-sub">cover studio</span>
+  </div>
+  <p class="tagline">Your photos, cut into a Vice City-style poster. Nothing leaves your machine.</p>
+  <div class="top-actions">
+    <label class="size-label">Size
+      <select id="size">
+        <option value="1080x1080">Square 1080 × 1080</option>
+        <option value="1080x1350" selected>Portrait 1080 × 1350</option>
+        <option value="1920x1080">Wide 1920 × 1080</option>
+      </select>
+    </label>
+    <button id="export" type="button" class="export-btn">Export PNG</button>
+  </div>
+</header>
+
+<main class="app">
+  <aside class="controls">
+    <section>
+      <h2>1 · Photos</h2>
+      <div class="photo-row">
+        <button type="button" class="photo-chip" data-sample="samples/boulevard.jpg">
+          <img src="./samples/boulevard.jpg" alt="Sample photo: a boulevard at dusk"> Boulevard
+        </button>
+        <button type="button" class="photo-chip" data-sample="samples/pier.jpg">
+          <img src="./samples/pier.jpg" alt="Sample photo: a pier at sunset"> Pier
+        </button>
+        <label class="photo-chip upload-chip">
+          <input id="upload" type="file" accept="image/*" multiple hidden>
+          <span class="upload-plus">＋</span> Add yours
+        </label>
+      </div>
+      <p class="hint">Added photos join the tray. Pick a panel below, then choose which photo fills it.</p>
+      <div id="tray" class="tray"></div>
+    </section>
+
+    <section>
+      <h2>2 · Layout</h2>
+      <div id="layouts" class="choice-list"></div>
+    </section>
+
+    <section>
+      <h2>3 · Panel</h2>
+      <div id="panel-tabs" class="panel-tabs"></div>
+      <label class="field">Photo in this panel
+        <select id="panel-photo"></select>
+      </label>
+      <label class="field">Zoom
+        <input id="panel-zoom" type="range" min="1" max="3" step="0.01" value="1">
+      </label>
+      <div class="row-buttons">
+        <button id="panel-reset" type="button">Reset position</button>
+        <button id="panel-fill-all" type="button">Use this photo everywhere</button>
+      </div>
+      <p class="hint">Tip: drag the photo inside the preview to reposition it in the selected panel.</p>
+    </section>
+
+    <section>
+      <h2>4 · Colour grade</h2>
+      <div id="grades" class="choice-list"></div>
+    </section>
+
+    <section>
+      <h2>5 · Words</h2>
+      <label class="field">Kicker
+        <input id="kicker" type="text" maxlength="42" value="One summer in Leonida">
+      </label>
+      <label class="field">Title
+        <textarea id="title" rows="2" maxlength="60">NEON
+HORIZON</textarea>
+      </label>
+      <label class="field">Script line
+        <input id="script" type="text" maxlength="42" value="wish you were here">
+      </label>
+    </section>
+
+    <p id="status" role="status" class="status"></p>
+  </aside>
+
+  <section class="stage">
+    <canvas id="stage" width="1080" height="1350" aria-label="Your cover, live preview"></canvas>
+    <p class="stage-hint">Live preview — the export is these exact pixels, at full size.</p>
+  </section>
+</main>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
